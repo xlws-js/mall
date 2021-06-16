@@ -3,13 +3,20 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <home-swiper :banners="banners"></home-swiper>
-    <home-recommend-view :recommends="recommends"></home-recommend-view>
-    <home-feature-view></home-feature-view>
+    <scroll id="warpper" ref="scroll"
+      :probeType="3" :pullUpLoad="true"
+      @scroll="onscroll" @pullingUp="pullUpLoad">
 
-    <tab-control :title="['流行', '新歌', '精选']"
-      @tabclick="change"></tab-control>
-    <goods-list :goods="goods[currentTitle].list"></goods-list>
+      <home-swiper :banners="banners"></home-swiper>
+      <home-recommend-view :recommends="recommends"></home-recommend-view>
+      <home-feature-view></home-feature-view>
+
+      <tab-control :title="['流行', '新歌', '精选']"
+        @tabclick="change"></tab-control>
+      <goods-list :goods="goods[currentTitle].list"></goods-list>
+
+    </scroll>
+    <back-top  @click.native="backTop" v-show="isShow"/>
   </div>
 </template>
 
@@ -17,6 +24,8 @@
 import NavBar from 'components/common/navbar/NavBar.vue'
 import TabControl from 'components/content/tabControl/TabControl.vue'
 import GoodsList from 'components/content/goods/GoodsList.vue'
+import Scroll from 'components/common/scroll/Scroll.vue'
+import BackTop from 'components/content/backtop/BackTop.vue'
 
 import HomeSwiper from './homecomponents/HomeSwiper.vue'
 import HomeRecommendView from './homecomponents/HomeRecommendView.vue'
@@ -30,6 +39,8 @@ export default {
     NavBar,
     TabControl,
     GoodsList,
+    Scroll,
+    BackTop,
 
     HomeSwiper,
     HomeRecommendView,
@@ -44,7 +55,8 @@ export default {
         new: {page: 0, list: []},
         sell: {page: 0, list: []}
       },
-      currentTitle: 'pop'
+      currentTitle: 'pop',
+      isShow: false
     }
   },
   created() {
@@ -69,6 +81,8 @@ export default {
       getHomeGoodsData(type, page).then(value => {
         this.goods[type].list.push(...value.data.data.list)
         this.goods[type].page++
+
+        this.$refs.scroll.finishPullUp()
       })
     },
 
@@ -83,6 +97,20 @@ export default {
         : 'sell'
     },
 
+    backTop() {
+      this.$refs.scroll.scrollTo(0, 0)
+    },
+
+    onscroll(position) {
+      this.isShow = position.y < -500 ? true : false
+    },
+
+    pullUpLoad() {
+      this.getHomeGoodsData(this.currentTitle)
+
+      this.$refs.scroll.refresh()
+    }
+
   }
 }
 </script>
@@ -90,7 +118,6 @@ export default {
 <style scoped>
   #home {
     margin-top: 44px;
-    height: 5000px;
   }
   .home-nav {
     background-color: var(--color-tint);
@@ -101,5 +128,9 @@ export default {
     left: 0;
     right: 0;
     z-index: 66;
+  }
+  #warpper {
+    height: calc(100vh - 93px);
+    overflow: hidden;
   }
 </style>

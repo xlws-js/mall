@@ -28,7 +28,7 @@ export default {
     btnClick(index) {
       this.currentIndex = index
 
-      this.$emit('tablick', index)
+      this.$emit('tabclick', index)
     }
   }
 }

@@ -40,7 +40,7 @@ export default {
 
   .goods-item .title {
     overflow: hidden;
-    text-overflow:ellipsis;
+    text-overflow: ellipsis;
     white-space: nowrap;
 
     font-size: 14px;

@@ -30,6 +30,9 @@ export default {
 
       this.$emit('tabclick', index)
     }
+  },
+  mounted() {
+
   }
 }
 </script>
@@ -40,11 +43,7 @@ export default {
     text-align: center;
     font-size: 14px;
     font-weight: 700;
-    height: 40px;
     line-height: 40px;
-    position: sticky;
-    top: 44px;
-
     background-color: #fff;
   }
 

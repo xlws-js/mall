@@ -34,18 +34,23 @@ export default {
     this.bscroll = new BScroll(this.$refs.warpper, {
       probeType: this.probeType,
       observeDOM: true,
+      observeImage: true,
       click: true,
       mouseWheel: true,
       pullUpLoad: this.pullUpLoad
     })
 
-    this.bscroll.on("scroll", position => {
-      this.$emit('scroll', position)
-    })
+    if (this.probeType == 2 || this.probeType == 3) {
+      this.bscroll.on("scroll", position => {
+        this.$emit('scroll', position)
+      })
+    }
 
-    this.bscroll.on("pullingUp", () => {
-      this.$emit("pullingUp")
-    })
+    if (this.pullUpLoad) {
+      this.bscroll.on("pullingUp", () => {
+        this.$emit("pullingUp")
+      })
+    }
   },
   methods: {
     scrollTo(x, y, time = 300) {
@@ -56,8 +61,12 @@ export default {
       this.bscroll.finishPullUp()
     },
 
+    getScrollY() {
+      return this.bscroll ? this.bscroll.y : 0
+    },
+
     refresh() {
-      this.bscroll.refresh()
+      this.bscroll && this.bscroll.refresh()
     }
   }
 }

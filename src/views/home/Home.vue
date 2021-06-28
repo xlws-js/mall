@@ -3,17 +3,37 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <scroll id="warpper" ref="scroll"
-      :probeType="3" :pullUpLoad="true"
-      @scroll="onscroll" @pullingUp="pullUpLoad">
 
-      <home-swiper :banners="banners"></home-swiper>
+    <tab-control
+        :title="['流行', '新歌', '精选']"
+        @tabclick="change"
+        ref="tabControl1"
+        class="tab-control"
+        v-show="isTabFixed"></tab-control>
+
+    <scroll id="warpper"
+      ref="scroll"
+      :probeType="3"
+      :pullUpLoad="true"
+      @scroll="onscroll"
+      @pullingUp="pullUpLoad">
+
+      <home-swiper
+        :banners="banners"
+        @swiperImageLoad="swiperImageLoad"
+      ></home-swiper>
       <home-recommend-view :recommends="recommends"></home-recommend-view>
       <home-feature-view></home-feature-view>
 
-      <tab-control :title="['流行', '新歌', '精选']"
-        @tabclick="change"></tab-control>
-      <goods-list :goods="goods[currentTitle].list"></goods-list>
+      <tab-control
+        :title="['流行', '新歌', '精选']"
+        @tabclick="change"
+        ref="tabControl2"
+        class="tab-control"
+        :class="{fixed: isTabFixed}" />
+      <goods-list
+        :goods="goods[currentTitle].list"
+        class="goods"></goods-list>
 
     </scroll>
     <back-top  @click.native="backTop" v-show="isShow"/>
@@ -32,6 +52,7 @@ import HomeRecommendView from './homecomponents/HomeRecommendView.vue'
 import HomeFeatureView from './homecomponents/HomeFeatureView.vue'
 
 import {getHomeMultidata, getHomeGoodsData} from "network/home.js"
+import {debounce} from 'network/debounce.js'
 
 export default {
   name: 'Home',
@@ -56,7 +77,10 @@ export default {
         sell: {page: 0, list: []}
       },
       currentTitle: 'pop',
-      isShow: false
+      isShow: false,
+      tabOffsetTop: 0,
+      isTabFixed: false,
+      saveY: 0
     }
   },
   created() {
@@ -81,8 +105,6 @@ export default {
       getHomeGoodsData(type, page).then(value => {
         this.goods[type].list.push(...value.data.data.list)
         this.goods[type].page++
-
-        this.$refs.scroll.finishPullUp()
       })
     },
 
@@ -95,6 +117,9 @@ export default {
         : index == 1
         ? 'new'
         : 'sell'
+
+      this.$refs.tabControl1.currentIndex = index
+      this.$refs.tabControl2.currentIndex = index
     },
 
     backTop() {
@@ -103,34 +128,51 @@ export default {
 
     onscroll(position) {
       this.isShow = position.y < -500 ? true : false
+      this.isTabFixed = -position.y >= this.tabOffsetTop - 44
     },
 
     pullUpLoad() {
       this.getHomeGoodsData(this.currentTitle)
 
-      this.$refs.scroll.refresh()
+      this.$refs.scroll.finishPullUp()
+    },
+
+    swiperImageLoad() {
+      this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop
     }
 
+  },
+  activated() {
+    this.$refs.scroll.refresh()
+    this.$refs.scroll.scrollTo(0, this.saveY, 10)
+  },
+
+  deactivated() {
+    this.saveY = this.$refs.scroll.getScrollY()
   }
 }
 </script>
 
 <style scoped>
-  #home {
-    margin-top: 44px;
-  }
   .home-nav {
     background-color: var(--color-tint);
     color: #fff;
-
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 66;
   }
   #warpper {
     height: calc(100vh - 93px);
     overflow: hidden;
+  }
+  .tab-control {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 66;
+  }
+  .goods {
+    margin-top: 44px;
+  }
+  .fixed {
+    position: fixed;
+    top: 44px;
   }
 </style>

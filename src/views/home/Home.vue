@@ -45,14 +45,13 @@ import NavBar from 'components/common/navbar/NavBar.vue'
 import TabControl from 'components/content/tabControl/TabControl.vue'
 import GoodsList from 'components/content/goods/GoodsList.vue'
 import Scroll from 'components/common/scroll/Scroll.vue'
-import BackTop from 'components/content/backtop/BackTop.vue'
 
 import HomeSwiper from './homecomponents/HomeSwiper.vue'
 import HomeRecommendView from './homecomponents/HomeRecommendView.vue'
 import HomeFeatureView from './homecomponents/HomeFeatureView.vue'
 
 import {getHomeMultidata, getHomeGoodsData} from "network/home.js"
-import {debounce} from 'network/debounce.js'
+import {backTopMixin} from 'common/mixin.js'
 
 export default {
   name: 'Home',
@@ -61,12 +60,12 @@ export default {
     TabControl,
     GoodsList,
     Scroll,
-    BackTop,
 
     HomeSwiper,
     HomeRecommendView,
     HomeFeatureView
   },
+  mixins: [backTopMixin],
   data() {
     return {
       banners: null,
@@ -77,7 +76,6 @@ export default {
         sell: {page: 0, list: []}
       },
       currentTitle: 'pop',
-      isShow: false,
       tabOffsetTop: 0,
       isTabFixed: false,
       saveY: 0
@@ -120,10 +118,6 @@ export default {
 
       this.$refs.tabControl1.currentIndex = index
       this.$refs.tabControl2.currentIndex = index
-    },
-
-    backTop() {
-      this.$refs.scroll.scrollTo(0, 0)
     },
 
     onscroll(position) {

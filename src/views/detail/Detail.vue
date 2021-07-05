@@ -16,6 +16,8 @@
       <detail-comment-info ref="comment" :commentInfo="commentInfo"/>
       <goods-list :goods="recommendInfo" ref="recommend" />
     </scroll>
+    <detail-bottom-bar @addToCart="addToCart" />
+    <back-top  @click.native="backTop" v-show="isShow"/>
   </div>
 </template>
 
@@ -27,6 +29,11 @@ import DetailShopInfo from './detailcomponent/DetailShopInfo.vue'
 import DetailInfo from './detailcomponent/DetailInfo.vue'
 import DetailGoodsParam from './detailcomponent/DetailGoodsParam.vue'
 import DetailCommentInfo from './detailcomponent/DetailCommentInfo.vue'
+import DetailBottomBar from "./detailcomponent/DetailBottomBar.vue"
+
+
+import {backTopMixin} from 'common/mixin.js'
+import {mapActions} from 'vuex'
 
 import GoodsList from 'components/content/goods/GoodsList.vue'
 import Scroll from 'components/common/scroll/Scroll.vue'
@@ -49,10 +56,12 @@ export default {
     DetailInfo,
     DetailGoodsParam,
     DetailCommentInfo,
+    DetailBottomBar,
 
     Scroll,
-    GoodsList
+    GoodsList,
   },
+  mixins: [backTopMixin],
   data() {
     return {
       iid: null,
@@ -64,7 +73,8 @@ export default {
       commentInfo: {},
       recommendInfo: [],
       titleCurrentYs: [],
-      currentIndex: 0
+      currentIndex: 0,
+      isShow: false,
     }
   },
   created() {
@@ -96,9 +106,12 @@ export default {
 
   },
   methods: {
+    ...mapActions([
+      'addCart'
+    ]),
     imgLoad() {
       this.$refs.scroll.refresh()
-      this.titleCurrentYs = []
+      this.titleCurrentYs.length = 0
 
       this.titleCurrentYs.push(0)
       this.titleCurrentYs.push(this.$refs.params.$el.offsetTop - 44)
@@ -106,24 +119,45 @@ export default {
       this.titleCurrentYs.push(this.$refs.recommend.$el.offsetTop - 44)
       this.titleCurrentYs.push(Number.MAX_VALUE)
 
-      console.log(this.titleCurrentYs);
     },
 
     titleClick(index) {
       this.$refs.scroll.scrollTo(0, -this.titleCurrentYs[index])
     },
 
-    scroll(opsition) {
-      let opsitionY = -opsition.y
+    scroll(position) {
+      let positionY = -position.y
       if (this.titleCurrentYs.length > 0) {
         let length = this.titleCurrentYs.length
-        this.titleCurrentYs.forEach((y, i) => {
-          if (opsitionY >= y && opsitionY <= this.titleCurrentYs[i + 1] && this.currentIndex != i) {
+        for (let i = 0; i < length - 1; i++) {
+          let y = this.titleCurrentYs[i]
+          if (positionY >= y && positionY <= this.titleCurrentYs[i + 1] && this.currentIndex != i) {
             this.$refs.navBar.currentIndex = i
             this.currentIndex = i
           }
-        })
+        }
       }
+
+      this.isShow = position.y < -500 ? true : false
+    },
+
+    addToCart() {
+      // 获取购物车需要展示的信息
+      const product = {}
+      product.image = this.topImages[0]
+      product.title = this.goods.title
+      product.desc = this.goods.desc
+      product.price = this.goods.price
+      product.iid = this.iid
+
+      // 添加进购物车
+      this.addCart(product).then(value => {
+        this.$toast.show(value, 1000)
+      })
+
+      // this.$store.dispatch('addCart', product).then(value => {
+      //   console.log(value);
+      // })
     }
   }
 }
@@ -136,7 +170,7 @@ export default {
     background-color: #fff;
   }
   #warpper {
-    height: calc(100vh - 44px);
+    height: calc(100vh - 93px);
     overflow: hidden;
   }
 </style>
